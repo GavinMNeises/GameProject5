@@ -44,6 +44,7 @@
     <Compile Include="AxisList.cs" />
     <Compile Include="BoundingRectangle.cs" />
     <Compile Include="Game1.cs" />
+    <Compile Include="GameText.cs" />
     <Compile Include="IBoundable.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="Player.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sprite.cs" />
     <Compile Include="SpriteSheet.cs" />
+    <Compile Include="Token.cs" />
     <Compile Include="VisualDebugging.cs" />
   </ItemGroup>
   <ItemGroup>

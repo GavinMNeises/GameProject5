@@ -76,24 +76,28 @@ namespace PlatformerExample
         }
 
         /// <summary>
-        /// Sorts the endpoints array using insertion sort.
-        /// This has good performance if the array is nearly sorted
+        /// Sorts the endpoints array using bubble sort,
+        /// since at most only 2 are out of order
         /// </summary>
         void Sort()
         {
-            int i = 1;
-            while (i < endPoints.Count)
+            bool swaped = false;
+            int j = endPoints.Count - 1;
+            do
             {
-                int j = i;
-                while (j > 0 && endPoints[j - 1].Value > endPoints[j].Value)
+                swaped = false;
+                for (int i = 0; i < j; i++)
                 {
-                    // swap [j-1] and [j]
-                    var tmp = endPoints[j - 1];
-                    endPoints[j - 1] = endPoints[j];
-                    endPoints[j] = tmp;
+                    if (endPoints[i].Value > endPoints[i + 1].Value)
+                    {
+                        swaped = true;
+                        var tmp = endPoints[i];
+                        endPoints[i] = endPoints[i + 1];
+                        endPoints[i + 1] = tmp;
+                    }
                 }
-                i++;
-            }
+                j--;
+            } while (swaped && j > 0);
         }
 
         public IEnumerable<IBoundable> QueryRange(float start, float end)

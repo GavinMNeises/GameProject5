@@ -21,7 +21,8 @@ namespace PlatformerExample
         WalkingLeft,
         WalkingRight,
         FallingLeft,
-        FallingRight
+        FallingRight,
+        Dead
     }
 
     /// <summary>
@@ -82,6 +83,18 @@ namespace PlatformerExample
 
         public BoundingRectangle Bounds => new BoundingRectangle(Position - 1.8f * origin, 38, 41);
 
+        int life = 4;
+
+        bool dead = false;
+
+        public bool Dead
+        {
+            get
+            {
+                return dead;
+            }
+        }
+
         /// <summary>
         /// Constructs a new player
         /// </summary>
@@ -122,71 +135,74 @@ namespace PlatformerExample
                     if (Position.Y > 500)
                     {
                         Position.Y = 500;
+                        Damage(10);
                     }
                     break;
             }
 
-
-            // Horizontal movement
-            if (keyboard.IsKeyDown(Keys.Left))
+            if (animationState != PlayerAnimState.Dead)
             {
-                if (verticalState == VerticalMovementState.Jumping || verticalState == VerticalMovementState.Falling)
-                    animationState = PlayerAnimState.JumpingLeft;
-                else animationState = PlayerAnimState.WalkingLeft;
-                Position.X -= speed;
-            }
-            else if (keyboard.IsKeyDown(Keys.Right))
-            {
-                if (verticalState == VerticalMovementState.Jumping || verticalState == VerticalMovementState.Falling)
-                    animationState = PlayerAnimState.JumpingRight;
-                else animationState = PlayerAnimState.WalkingRight;
-                Position.X += speed;
-            }
-            else
-            {
-                animationState = PlayerAnimState.Idle;
-            }
+                // Horizontal movement
+                if (keyboard.IsKeyDown(Keys.Left))
+                {
+                    if (verticalState == VerticalMovementState.Jumping || verticalState == VerticalMovementState.Falling)
+                        animationState = PlayerAnimState.JumpingLeft;
+                    else animationState = PlayerAnimState.WalkingLeft;
+                    Position.X -= speed;
+                }
+                else if (keyboard.IsKeyDown(Keys.Right))
+                {
+                    if (verticalState == VerticalMovementState.Jumping || verticalState == VerticalMovementState.Falling)
+                        animationState = PlayerAnimState.JumpingRight;
+                    else animationState = PlayerAnimState.WalkingRight;
+                    Position.X += speed;
+                }
+                else
+                {
+                    animationState = PlayerAnimState.Idle;
+                }
 
-            // Apply animations
-            switch (animationState)
-            {
-                case PlayerAnimState.Idle:
-                    currentFrame = 0;
-                    animationTimer = new TimeSpan(0);
-                    break;
-
-                case PlayerAnimState.JumpingLeft:
-                    spriteEffects = SpriteEffects.FlipHorizontally;
-                    currentFrame = 7;
-                    break;
-
-                case PlayerAnimState.JumpingRight:
-                    spriteEffects = SpriteEffects.None;
-                    currentFrame = 7;
-                    break;
-
-                case PlayerAnimState.WalkingLeft:
-                    animationTimer += gameTime.ElapsedGameTime;
-                    spriteEffects = SpriteEffects.FlipHorizontally;
-                    // Walking frames are 9 & 10
-                    if (animationTimer.TotalMilliseconds > FRAME_RATE * 2)
-                    {
+                // Apply animations
+                switch (animationState)
+                {
+                    case PlayerAnimState.Idle:
+                        currentFrame = 0;
                         animationTimer = new TimeSpan(0);
-                    }
-                    currentFrame = (int)Math.Floor(animationTimer.TotalMilliseconds / FRAME_RATE) + 9;
-                    break;
+                        break;
 
-                case PlayerAnimState.WalkingRight:
-                    animationTimer += gameTime.ElapsedGameTime;
-                    spriteEffects = SpriteEffects.None;
-                    // Walking frames are 9 & 10
-                    if (animationTimer.TotalMilliseconds > FRAME_RATE * 2)
-                    {
-                        animationTimer = new TimeSpan(0);
-                    }
-                    currentFrame = (int)Math.Floor(animationTimer.TotalMilliseconds / FRAME_RATE) + 9;
-                    break;
+                    case PlayerAnimState.JumpingLeft:
+                        spriteEffects = SpriteEffects.FlipHorizontally;
+                        currentFrame = 7;
+                        break;
 
+                    case PlayerAnimState.JumpingRight:
+                        spriteEffects = SpriteEffects.None;
+                        currentFrame = 7;
+                        break;
+
+                    case PlayerAnimState.WalkingLeft:
+                        animationTimer += gameTime.ElapsedGameTime;
+                        spriteEffects = SpriteEffects.FlipHorizontally;
+                        // Walking frames are 9 & 10
+                        if (animationTimer.TotalMilliseconds > FRAME_RATE * 2)
+                        {
+                            animationTimer = new TimeSpan(0);
+                        }
+                        currentFrame = (int)Math.Floor(animationTimer.TotalMilliseconds / FRAME_RATE) + 9;
+                        break;
+
+                    case PlayerAnimState.WalkingRight:
+                        animationTimer += gameTime.ElapsedGameTime;
+                        spriteEffects = SpriteEffects.None;
+                        // Walking frames are 9 & 10
+                        if (animationTimer.TotalMilliseconds > FRAME_RATE * 2)
+                        {
+                            animationTimer = new TimeSpan(0);
+                        }
+                        currentFrame = (int)Math.Floor(animationTimer.TotalMilliseconds / FRAME_RATE) + 9;
+                        break;
+
+                }
             }
         }
 
@@ -205,6 +221,43 @@ namespace PlatformerExample
                     }
                 }
             }
+        }
+
+        public int CheckForTokenCollision(IEnumerable<IBoundable> tokens)
+        {
+            int score = 0;
+            Debug.WriteLine($"Checking collisions against {tokens.Count()} tokens");
+            foreach (Token token in tokens)
+            {
+                if (Bounds.CollidesWith(token.Bounds) && token.Active)
+                {
+                    score++;
+                    token.Collect();
+                }
+            }
+            return score;
+        }
+
+        public void Damage(int damage)
+        {
+            life -= damage;
+            if (life <= 0)
+            {
+                animationState = PlayerAnimState.Dead;
+                currentFrame = frames.Length - 1;
+                dead = true;
+            }
+        }
+
+        public void Reset()
+        {
+            life = 4;
+            animationState = PlayerAnimState.Idle;
+            verticalState = VerticalMovementState.OnGround;
+            spriteEffects = SpriteEffects.None;
+            color = Color.White;
+            Position = new Vector2(200, 200);
+            dead = false;
         }
 
         /// <summary>
