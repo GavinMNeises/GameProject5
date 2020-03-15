@@ -43,6 +43,15 @@ namespace PlatformerContentExtension
                 layer.Data = dataIds.ToArray();
             }
 
+            // Correction for tile objects X,Y being left,bottom origin instead of left,top
+            foreach (TilemapObjectGroupContent objectGroup in input.ObjectGroups)
+            {
+                foreach(ObjectGroupObjects groupObject in objectGroup.Objects)
+                {
+                    groupObject.Y -= input.TileHeight;
+                }
+            }
+
             // The tileset has been processed
             return input;
         }

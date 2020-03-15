@@ -27,8 +27,6 @@ namespace PlatformLibrary
             // Read the layer count and create collections to hold layers
             var layerCount = input.ReadInt32();
             var layers = new TilemapLayer[layerCount];
-            var layersById = new Dictionary<uint, TilemapLayer>();
-            var layersByName = new Dictionary<string, TilemapLayer>();
 
             // Read the layer data
             for (var i = 0; i < layerCount; i++)
@@ -42,8 +40,6 @@ namespace PlatformLibrary
                     layerData[j] = input.ReadUInt32();
                 }
                 layers[i] = new TilemapLayer(layerData);
-                //layersById[layerId] = layers[i];
-                //layersByName[layerName] = layers[i];
             }
 
             // Read the tileset data
@@ -61,8 +57,29 @@ namespace PlatformLibrary
                 }
             }
 
+            // Read ObjectGroup data
+            var objectGroups = new List<ObjectGroup>();
+            var objectGroupsCount = input.ReadUInt32();
+            for (var i = 0; i < objectGroupsCount; i++)
+            {
+                var name = input.ReadString();
+                var groupObjects = new List<GroupObject>();
+                var groupObjectsCount = input.ReadUInt32();
+                for (var j = 0; j < groupObjectsCount; j++)
+                {
+                    var sheetIndex = input.ReadInt32();
+                    var x = input.ReadUInt32();
+                    var y = input.ReadUInt32();
+                    var width = input.ReadUInt32();
+                    var height = input.ReadUInt32();
+
+                    groupObjects.Add(new GroupObject(sheetIndex, x, y, width, height));
+                }
+                objectGroups.Add(new ObjectGroup(name, groupObjects.ToArray()));
+            }
+
             // Construct and return the tilemap
-            return new Tilemap(mapWidth, mapHeight, tileWidth, tileHeight, layers, tiles.ToArray());
+            return new Tilemap(mapWidth, mapHeight, tileWidth, tileHeight, layers, tiles.ToArray(), objectGroups.ToArray());
         }
     }
 }

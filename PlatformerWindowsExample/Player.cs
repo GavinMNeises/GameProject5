@@ -81,6 +81,11 @@ namespace PlatformerExample
         /// </summary>
         public Vector2 Position = new Vector2(200, 200);
 
+        /// <summary>
+        /// Orginal position of player, used for reseting the character when they die
+        /// </summary>
+        public Vector2 OriginalPosition;
+
         public BoundingRectangle Bounds => new BoundingRectangle(Position - 1.8f * origin, 38, 41);
 
         int life = 4;
@@ -99,10 +104,15 @@ namespace PlatformerExample
         /// Constructs a new player
         /// </summary>
         /// <param name="frames">The sprite frames associated with the player</param>
-        public Player(IEnumerable<Sprite> frames)
+        /// <param name="x">The spawn point x</param>
+        /// <param name="y">The spawn point y</param>
+        public Player(IEnumerable<Sprite> frames, uint x, uint y)
         {
             this.frames = frames.ToArray();
             animationState = PlayerAnimState.WalkingLeft;
+            Position.X = x + 10;
+            Position.Y = y + 21;
+            OriginalPosition = Position;
         }
 
         /// <summary>
@@ -132,9 +142,9 @@ namespace PlatformerExample
                 case VerticalMovementState.Falling:
                     Position.Y += speed;
                     // TODO: This needs to be replaced with collision logic
-                    if (Position.Y > 500)
+                    if (Position.Y > 840)
                     {
-                        Position.Y = 500;
+                        Position.Y = 840;
                         Damage(10);
                     }
                     break;
@@ -256,7 +266,7 @@ namespace PlatformerExample
             verticalState = VerticalMovementState.OnGround;
             spriteEffects = SpriteEffects.None;
             color = Color.White;
-            Position = new Vector2(200, 200);
+            Position = OriginalPosition;
             dead = false;
         }
 

@@ -26,6 +26,11 @@
 /processor:TilemapProcessor
 /build:level1.tmx
 
+#begin level2.tmx
+/importer:TilemapImporter
+/processor:TilemapProcessor
+/build:level2.tmx
+
 #begin spritesheet.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -38,8 +43,8 @@
 /processorParam:TextureFormat=Color
 /build:spritesheet.png
 
-#begin tiledspritesheet.tsx
+#begin tiledspritesheetFixed.tsx
 /importer:TilesetImporter
 /processor:TilesetProcessor
-/build:tiledspritesheet.tsx
+/build:tiledspritesheetFixed.tsx
 

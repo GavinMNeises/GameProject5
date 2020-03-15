@@ -59,6 +59,24 @@ namespace PlatformerContentExtension
                 output.Write(tileset.FirstGID);
                 output.WriteExternalReference(tileset.Reference);
             }
+
+            //Write out how many objectgroups there are
+            output.Write(value.ObjectGroups.Count);
+            foreach (var objectGroup in value.ObjectGroups)
+            {
+                //Write out the name of the objectgroup and how many objects it has
+                output.Write(objectGroup.Name);
+                output.Write(objectGroup.Objects.Count);
+                foreach (var groupObject in objectGroup.Objects)
+                {
+                    //Write out each object's info
+                    output.Write(groupObject.SheetIndex);
+                    output.Write(groupObject.X);
+                    output.Write(groupObject.Y);
+                    output.Write(groupObject.Width);
+                    output.Write(groupObject.Height);
+                }
+            }
         }
 
         /// <summary>

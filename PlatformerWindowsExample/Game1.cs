@@ -78,41 +78,64 @@ namespace PlatformerExample
             sheet = new SpriteSheet(t, 21, 21, 3, 2);
 
             // Load the tilemap
-            tilemap = Content.Load<Tilemap>("level1");
+            tilemap = Content.Load<Tilemap>("level2");
 
-            // Create the player with the corresponding frames from the spritesheet
-            var playerFrames = from index in Enumerable.Range(19, 11) select sheet[index];
-            List<Sprite> playerFramesList = playerFrames.ToList();
-            playerFramesList.Add(sheet[112]);
-            player = new Player(playerFramesList);
-
-            // Create the platforms
-            platforms.Add(new Platform(new BoundingRectangle(80, 300, 105, 21), sheet[1]));
-            platforms.Add(new Platform(new BoundingRectangle(280, 400, 84, 21), sheet[2]));
-            platforms.Add(new Platform(new BoundingRectangle(160, 200, 42, 21), sheet[3]));
-
-            // Add the platforms to the axis list
-            platformAxis = new AxisList();
-            foreach (Platform platform in platforms)
+            // Use the object groups to load in the tokens, platforms, and player spawn point
+            foreach(ObjectGroup objectGroup in tilemap.ObjectGroups)
             {
-                platformAxis.AddGameObject(platform);
-            }
+                if(objectGroup.Name == "Coin Layer")
+                {
+                    foreach(GroupObject groupObject in objectGroup.Objects)
+                    {
+                        BoundingRectangle bounds = new BoundingRectangle(
+                            groupObject.X,
+                            groupObject.Y,
+                            groupObject.Width,
+                            groupObject.Height
+                        );
+                        tokens.Add(new Token(bounds, sheet[groupObject.SheetIndex-1]));
+                    }
+                    tokenAxis = new AxisList();
+                    foreach (Token token in tokens)
+                    {
+                        tokenAxis.AddGameObject(token);
+                    }
+                }
+                else if(objectGroup.Name == "Platform Layer")
+                {
+                    foreach(GroupObject groupObject in objectGroup.Objects)
+                    {
+                        BoundingRectangle bounds = new BoundingRectangle(
+                            groupObject.X,
+                            groupObject.Y,
+                            groupObject.Width,
+                            groupObject.Height
+                        );
+                        platforms.Add(new Platform(bounds, sheet[groupObject.SheetIndex - 1]));
+                    }
 
-            tokens.Add(new Token(new BoundingRectangle(370, 179, 21, 21), sheet[115]));
-            tokens.Add(new Token(new BoundingRectangle(570, 121, 21, 21), sheet[115]));
-            tokens.Add(new Token(new BoundingRectangle(843, 353, 21, 21), sheet[115]));
-
-            tokenAxis = new AxisList();
-            foreach (Token token in tokens)
-            {
-                tokenAxis.AddGameObject(token);
+                    platformAxis = new AxisList();
+                    foreach (Platform platform in platforms)
+                    {
+                        platformAxis.AddGameObject(platform);
+                    }
+                }
+                else if(objectGroup.Name == "Spawn Layer")
+                {
+                    GroupObject groupObject = objectGroup.Objects[0];
+                    // Create the player with the corresponding frames from the spritesheet
+                    var playerFrames = from index in Enumerable.Range(19, 11) select sheet[index];
+                    List<Sprite> playerFramesList = playerFrames.ToList();
+                    playerFramesList.Add(sheet[112]);
+                    player = new Player(playerFramesList, groupObject.X, groupObject.Y);
+                }
             }
 
             score = 0;
 
             gameText.LoadContent(Content);
 
-            tileset = Content.Load<Tileset>("tiledspritesheet");
+            tileset = Content.Load<Tileset>("tiledspritesheetFixed");
         }
 
         /// <summary>

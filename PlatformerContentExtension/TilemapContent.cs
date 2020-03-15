@@ -30,5 +30,7 @@ namespace PlatformerContentExtension
 
         public List<TilemapLayerContent> Layers = new List<TilemapLayerContent>();
 
+        public List<TilemapObjectGroupContent> ObjectGroups = new List<TilemapObjectGroupContent>();
+
     }
 }
