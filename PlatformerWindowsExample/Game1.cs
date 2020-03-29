@@ -1,6 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Audio;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
@@ -32,6 +34,9 @@ namespace PlatformerExample
 
         List<Token> tokens;
         AxisList tokenAxis;
+
+        ParticleSystem particleSystem;
+        float deathCountdown;
 
         GameText gameText;
         GameState state;
@@ -80,6 +85,11 @@ namespace PlatformerExample
             // Load the tilemap
             tilemap = Content.Load<Tilemap>("level2");
 
+            SoundEffect tokenSound = Content.Load<SoundEffect>("PickupCoin");
+
+            SoundEffect playerJump = Content.Load<SoundEffect>("Jump");
+            SoundEffect playerHurt = Content.Load<SoundEffect>("Hurt");
+
             // Use the object groups to load in the tokens, platforms, and player spawn point
             foreach(ObjectGroup objectGroup in tilemap.ObjectGroups)
             {
@@ -93,7 +103,7 @@ namespace PlatformerExample
                             groupObject.Width,
                             groupObject.Height
                         );
-                        tokens.Add(new Token(bounds, sheet[groupObject.SheetIndex-1]));
+                        tokens.Add(new Token(bounds, sheet[groupObject.SheetIndex-1], tokenSound));
                     }
                     tokenAxis = new AxisList();
                     foreach (Token token in tokens)
@@ -127,9 +137,40 @@ namespace PlatformerExample
                     var playerFrames = from index in Enumerable.Range(19, 11) select sheet[index];
                     List<Sprite> playerFramesList = playerFrames.ToList();
                     playerFramesList.Add(sheet[112]);
-                    player = new Player(playerFramesList, groupObject.X, groupObject.Y);
+                    player = new Player(playerFramesList, groupObject.X, groupObject.Y, playerJump, playerHurt);
                 }
             }
+
+            //Gets the texture for the particle system and initializes it
+            Texture2D texture = Content.Load<Texture2D>("Particle");
+            particleSystem = new ParticleSystem(GraphicsDevice, 1000, texture);
+            particleSystem.SpawnPerFrame = 10;
+
+            //Set the SpawnParticle method
+            particleSystem.SpawnParticle = (ref Particle particle) =>
+            {
+                Random random = new Random();
+                particle.Position = new Vector2(player.Position.X - 10, player.Position.Y);
+                particle.Velocity = new Vector2(
+                    MathHelper.Lerp(-75, 75, (float)random.NextDouble()), //X between -50 and 50
+                    MathHelper.Lerp(0, -250, (float)random.NextDouble()) //Y between 0 and 100
+                );
+                particle.Acceleration = 0.1f * new Vector2(0, (float)random.NextDouble());
+                particle.Color = new Color(20, 0, 0);
+                particle.Scale = 1f;
+                particle.Life = 1.0f;
+            };
+
+            //Set the UpdateParticle method
+            particleSystem.UpdateParticle = (float deltaT, ref Particle particle) =>
+            {
+                particle.Velocity += deltaT * particle.Acceleration;
+                particle.Position += deltaT * particle.Velocity;
+                particle.Scale -= deltaT;
+                particle.Life -= deltaT;
+            };
+
+            deathCountdown = 0;
 
             score = 0;
 
@@ -178,6 +219,7 @@ namespace PlatformerExample
                 if(player.Dead)
                 {
                     state = GameState.End;
+                    deathCountdown = 3.0f;
                 }
 
                 // Check for platform collisions
@@ -186,6 +228,13 @@ namespace PlatformerExample
 
                 var tokenQuery = tokenAxis.QueryRange(player.Bounds.X, player.Bounds.X + player.Bounds.Width);
                 score += player.CheckForTokenCollision(tokenQuery);
+            }
+
+            if (state == GameState.End && deathCountdown > 0)
+            {
+                particleSystem.Update(gameTime);
+
+                deathCountdown -= (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
 
             base.Update(gameTime);
@@ -240,6 +289,8 @@ namespace PlatformerExample
                 gameText.Draw(spriteBatch, "Press Enter To Begin", player.Position);
 
                 gameText.Draw(spriteBatch, "Game Over!", new Vector2(player.Position.X, player.Position.Y + GraphicsDevice.Viewport.Height / 4));
+
+                particleSystem.Draw(t);
             }
 
             spriteBatch.End();

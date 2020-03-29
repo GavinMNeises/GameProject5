@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Audio;
 
 namespace PlatformerExample
 {
@@ -29,21 +30,25 @@ namespace PlatformerExample
 
         public bool Active => active;
 
+        SoundEffect pickupSound;
+
         /// <summary>
         /// Constructs a new token
         /// </summary>
         /// <param name="bounds">The token's bounds</param>
         /// <param name="sprite">The token's sprite</param>
-        public Token(BoundingRectangle bounds, Sprite sprite)
+        public Token(BoundingRectangle bounds, Sprite sprite, SoundEffect pickupSound)
         {
             this.bounds = bounds;
             this.sprite = sprite;
             active = true;
+            this.pickupSound = pickupSound;
         }
 
         public void Collect()
         {
             active = false;
+            pickupSound.Play();
         }
 
         public void Reset()

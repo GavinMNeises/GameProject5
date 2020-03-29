@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Audio;
 using System.Diagnostics;
 
 namespace PlatformerExample
@@ -100,19 +101,27 @@ namespace PlatformerExample
             }
         }
 
+        SoundEffect jumpNoise;
+
+        SoundEffect hurtNoise;
+
         /// <summary>
         /// Constructs a new player
         /// </summary>
         /// <param name="frames">The sprite frames associated with the player</param>
         /// <param name="x">The spawn point x</param>
         /// <param name="y">The spawn point y</param>
-        public Player(IEnumerable<Sprite> frames, uint x, uint y)
+        /// <param name="jumpNoise">The sound effect to play when the player jumps</param>
+        /// <param name="hurtNoise">The sound effect to play when the player gets hurt</param>
+        public Player(IEnumerable<Sprite> frames, uint x, uint y, SoundEffect jumpNoise, SoundEffect hurtNoise)
         {
             this.frames = frames.ToArray();
             animationState = PlayerAnimState.WalkingLeft;
             Position.X = x + 10;
             Position.Y = y + 21;
             OriginalPosition = Position;
+            this.jumpNoise = jumpNoise;
+            this.hurtNoise = hurtNoise;
         }
 
         /// <summary>
@@ -131,6 +140,7 @@ namespace PlatformerExample
                     {
                         verticalState = VerticalMovementState.Jumping;
                         jumpTimer = new TimeSpan(0);
+                        jumpNoise.Play();
                     }
                     break;
                 case VerticalMovementState.Jumping:
@@ -251,6 +261,7 @@ namespace PlatformerExample
         public void Damage(int damage)
         {
             life -= damage;
+            hurtNoise.Play();
             if (life <= 0)
             {
                 animationState = PlayerAnimState.Dead;
