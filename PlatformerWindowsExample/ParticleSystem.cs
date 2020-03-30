@@ -68,6 +68,8 @@ namespace PlatformerExample
         /// </summary>
         public ParticleUpdater UpdateParticle { get; set; }
 
+        public float SystemLife { get; set; }
+
         /// <summary>
         /// This initializes a new ParticleSystem
         /// </summary>
@@ -79,6 +81,7 @@ namespace PlatformerExample
             this.particles = new Particle[size];
             this.spriteBatch = new SpriteBatch(graphicsDevice);
             this.texture = texture;
+            SystemLife = 0;
         }
 
         /// <summary>
@@ -91,15 +94,18 @@ namespace PlatformerExample
             //Make sure our delegate properties are set
             if (SpawnParticle == null || UpdateParticle == null) return;
 
-            //Spawn Particles
-            for (int i = 0; i < SpawnPerFrame; i++)
+            //Spawn Particles if system still has life
+            if (SystemLife > 0)
             {
-                //Create the particle
-                SpawnParticle(ref particles[nextIndex]);
+                for (int i = 0; i < SpawnPerFrame; i++)
+                {
+                    //Create the particle
+                    SpawnParticle(ref particles[nextIndex]);
 
-                //Advance nextIndex
-                nextIndex++;
-                if (nextIndex > particles.Length - 1) nextIndex = 0;
+                    //Advance nextIndex
+                    nextIndex++;
+                    if (nextIndex > particles.Length - 1) nextIndex = 0;
+                }
             }
 
             //Update Particles
@@ -112,6 +118,8 @@ namespace PlatformerExample
                 //Update live particles
                 UpdateParticle(deltaT, ref particles[i]);
             }
+
+            SystemLife -= (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
 
         /// <summary>
@@ -119,7 +127,7 @@ namespace PlatformerExample
         /// </summary>
         public void Draw(Matrix translationMatrix)
         {
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, null, null, null, null, translationMatrix);
+            spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, translationMatrix);
 
             for (int i = 0; i < particles.Length; i++)
             {

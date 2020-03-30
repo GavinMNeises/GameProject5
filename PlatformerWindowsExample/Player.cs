@@ -93,6 +93,10 @@ namespace PlatformerExample
 
         bool dead = false;
 
+        ParticleSystem jumpParticles;
+
+        ParticleSystem coinParticles;
+
         public bool Dead
         {
             get
@@ -113,7 +117,9 @@ namespace PlatformerExample
         /// <param name="y">The spawn point y</param>
         /// <param name="jumpNoise">The sound effect to play when the player jumps</param>
         /// <param name="hurtNoise">The sound effect to play when the player gets hurt</param>
-        public Player(IEnumerable<Sprite> frames, uint x, uint y, SoundEffect jumpNoise, SoundEffect hurtNoise)
+        /// <param name="jumpParticles">The particle system to activate when the player jumps</param>
+        /// <param name="coinParticles">The particle system to activate when the player collects a coin</param>
+        public Player(IEnumerable<Sprite> frames, uint x, uint y, SoundEffect jumpNoise, SoundEffect hurtNoise, ParticleSystem jumpParticles, ParticleSystem coinParticles)
         {
             this.frames = frames.ToArray();
             animationState = PlayerAnimState.WalkingLeft;
@@ -122,6 +128,8 @@ namespace PlatformerExample
             OriginalPosition = Position;
             this.jumpNoise = jumpNoise;
             this.hurtNoise = hurtNoise;
+            this.jumpParticles = jumpParticles;
+            this.coinParticles = coinParticles;
         }
 
         /// <summary>
@@ -141,6 +149,8 @@ namespace PlatformerExample
                         verticalState = VerticalMovementState.Jumping;
                         jumpTimer = new TimeSpan(0);
                         jumpNoise.Play();
+                        jumpParticles.Emitter = Position;
+                        jumpParticles.SystemLife = 0.5f;
                     }
                     break;
                 case VerticalMovementState.Jumping:
@@ -223,6 +233,9 @@ namespace PlatformerExample
                         break;
 
                 }
+
+                jumpParticles.Update(gameTime);
+                coinParticles.Update(gameTime);
             }
         }
 
@@ -253,6 +266,8 @@ namespace PlatformerExample
                 {
                     score++;
                     token.Collect();
+                    coinParticles.Emitter = new Vector2(token.Bounds.X + (token.Bounds.Width / 2), token.Bounds.Y + (token.Bounds.Height / 2));
+                    coinParticles.SystemLife = 0.5f;
                 }
             }
             return score;
@@ -286,12 +301,15 @@ namespace PlatformerExample
         /// SpriteBatch.Begin() and SpriteBatch.End()
         /// </summary>
         /// <param name="spriteBatch">The SpriteBatch to use</param>
-        public void Draw(SpriteBatch spriteBatch)
+        /// <param name="translationMatrix">Matrix used for translating the particles systems' Draw functions</param>
+        public void Draw(SpriteBatch spriteBatch, Matrix translationMatrix)
         {
 #if VISUAL_DEBUG 
             VisualDebugging.DrawRectangle(spriteBatch, Bounds, Color.Red);
 #endif
             frames[currentFrame].Draw(spriteBatch, Position, color, 0, origin, 2, spriteEffects, 1);
+            jumpParticles.Draw(translationMatrix);
+            coinParticles.Draw(translationMatrix);
         }
 
     }
