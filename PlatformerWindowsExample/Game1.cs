@@ -25,7 +25,6 @@ namespace PlatformerExample
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         SpriteSheet sheet;
-        Tileset tileset;
         Tilemap tilemap;
         Player player;
         
@@ -97,9 +96,6 @@ namespace PlatformerExample
             ParticleSystem coinCollectParticles = new ParticleSystem(GraphicsDevice, 1000, texture);
             coinCollectParticles.SpawnPerFrame = 20;
 
-            ParticleSystem playerJumpParticles = new ParticleSystem(GraphicsDevice, 1000, texture);
-            playerJumpParticles.SpawnPerFrame = 20;
-
             //Set the SpawnParticle method for the systems
             playerDeathParticles.SpawnParticle = (ref Particle particle) =>
             {
@@ -129,27 +125,6 @@ namespace PlatformerExample
                 particle.Life = 0.25f;
             };
 
-            playerJumpParticles.SpawnParticle = (ref Particle particle) =>
-            {
-                Random random = new Random();
-                particle.Position = player.Position;
-                particle.Velocity = new Vector2(
-                    MathHelper.Lerp(-180, 180, (float)random.NextDouble()), //X between -180 and 180
-                    MathHelper.Lerp(0, 180, (float)random.NextDouble()) //Y between 0 and 180
-                );
-                particle.Acceleration = new Vector2(0, 0);
-                if (random.NextDouble() > .5)
-                {
-                    particle.Color = new Color(128, 190, 31);
-                }
-                else
-                {
-                    particle.Color = new Color(187, 128, 68);
-                }
-                particle.Scale = 0.5f;
-                particle.Life = 0.25f;
-            };
-
             //Set the UpdateParticle method for the systems
             playerDeathParticles.UpdateParticle = (float deltaT, ref Particle particle) =>
             {
@@ -160,7 +135,6 @@ namespace PlatformerExample
             };
 
             coinCollectParticles.UpdateParticle = playerDeathParticles.UpdateParticle;
-            playerJumpParticles.UpdateParticle = playerDeathParticles.UpdateParticle;
 
             // Use the object groups to load in the tokens, platforms, and player spawn point
             foreach (ObjectGroup objectGroup in tilemap.ObjectGroups)
@@ -209,15 +183,48 @@ namespace PlatformerExample
                     var playerFrames = from index in Enumerable.Range(19, 11) select sheet[index];
                     List<Sprite> playerFramesList = playerFrames.ToList();
                     playerFramesList.Add(sheet[112]);
-                    player = new Player(playerFramesList, groupObject.X, groupObject.Y, playerJump, playerHurt, playerJumpParticles, coinCollectParticles);
+                    player = new Player(playerFramesList, groupObject.X, groupObject.Y, playerJump, playerHurt, coinCollectParticles);
                 }
             }
 
             score = 0;
 
-            gameText.LoadContent(Content);
+            // Loads the background texture, makes its Sprite, and creates its parallax layer
+            var backgroundTexture = Content.Load<Texture2D>("background");
+            var backgroundSprite = new StaticSprite(backgroundTexture);
+            var backgroundLayer = new ParallaxLayer(this, player, 0.1f);
+            backgroundLayer.Sprites.Add(backgroundSprite);
+            backgroundLayer.DrawOrder = 0;
+            Components.Add(backgroundLayer);
 
-            tileset = Content.Load<Tileset>("tiledspritesheetFixed");
+            // Loads the midground textures
+            var midgroundTextures = new Texture2D[]
+            {
+                Content.Load<Texture2D>("midground1"),
+                Content.Load<Texture2D>("midground2")
+            };
+
+            // Creates the midground sprites
+            var midgroundSprites = new StaticSprite[]
+            {
+                new StaticSprite(midgroundTextures[0]),
+                new StaticSprite(midgroundTextures[1], new Vector2(3500, 0))
+            };
+
+            // Creates the midground layer and initializes its controller
+            var midgroundLayer = new ParallaxLayer(this, player, 0.4f);
+            midgroundLayer.Sprites.AddRange(midgroundSprites);
+            midgroundLayer.DrawOrder = 1;
+            Components.Add(midgroundLayer);
+
+            var birdTexture = Content.Load<Texture2D>("birds");
+            var birdsSprites = new StaticSprite(birdTexture);
+            var birdsLayer = new ParallaxLayer(this, 80f);
+            birdsLayer.Sprites.Add(birdsSprites);
+            birdsLayer.DrawOrder = 2;
+            Components.Add(birdsLayer);
+
+            gameText.LoadContent(Content);
         }
 
         /// <summary>
@@ -284,6 +291,8 @@ namespace PlatformerExample
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
+            base.Draw(gameTime);
+
             // Calculate and apply the world/view transform
             var offset = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2) - player.Position;
             var t = Matrix.CreateTranslation(offset.X, offset.Y, 0);
@@ -330,8 +339,6 @@ namespace PlatformerExample
             }
 
             spriteBatch.End();
-
-            base.Draw(gameTime);
         }
     }
 }

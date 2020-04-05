@@ -93,8 +93,6 @@ namespace PlatformerExample
 
         bool dead = false;
 
-        ParticleSystem jumpParticles;
-
         ParticleSystem coinParticles;
 
         public bool Dead
@@ -119,7 +117,7 @@ namespace PlatformerExample
         /// <param name="hurtNoise">The sound effect to play when the player gets hurt</param>
         /// <param name="jumpParticles">The particle system to activate when the player jumps</param>
         /// <param name="coinParticles">The particle system to activate when the player collects a coin</param>
-        public Player(IEnumerable<Sprite> frames, uint x, uint y, SoundEffect jumpNoise, SoundEffect hurtNoise, ParticleSystem jumpParticles, ParticleSystem coinParticles)
+        public Player(IEnumerable<Sprite> frames, uint x, uint y, SoundEffect jumpNoise, SoundEffect hurtNoise, ParticleSystem coinParticles)
         {
             this.frames = frames.ToArray();
             animationState = PlayerAnimState.WalkingLeft;
@@ -128,7 +126,6 @@ namespace PlatformerExample
             OriginalPosition = Position;
             this.jumpNoise = jumpNoise;
             this.hurtNoise = hurtNoise;
-            this.jumpParticles = jumpParticles;
             this.coinParticles = coinParticles;
         }
 
@@ -149,8 +146,6 @@ namespace PlatformerExample
                         verticalState = VerticalMovementState.Jumping;
                         jumpTimer = new TimeSpan(0);
                         jumpNoise.Play();
-                        jumpParticles.Emitter = Position;
-                        jumpParticles.SystemLife = 0.5f;
                     }
                     break;
                 case VerticalMovementState.Jumping:
@@ -234,7 +229,6 @@ namespace PlatformerExample
 
                 }
 
-                jumpParticles.Update(gameTime);
                 coinParticles.Update(gameTime);
             }
         }
@@ -308,7 +302,6 @@ namespace PlatformerExample
             VisualDebugging.DrawRectangle(spriteBatch, Bounds, Color.Red);
 #endif
             frames[currentFrame].Draw(spriteBatch, Position, color, 0, origin, 2, spriteEffects, 1);
-            jumpParticles.Draw(translationMatrix);
             coinParticles.Draw(translationMatrix);
         }
 

@@ -41,19 +41,25 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AutoScrollController.cs" />
     <Compile Include="AxisList.cs" />
     <Compile Include="BoundingRectangle.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GameText.cs" />
     <Compile Include="IBoundable.cs" />
+    <Compile Include="IScrollController.cs" />
+    <Compile Include="ISprite.cs" />
+    <Compile Include="ParallaxLayer.cs" />
     <Compile Include="Particle.cs" />
     <Compile Include="ParticleSystem.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="PlayerTrackingScrollController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sprite.cs" />
     <Compile Include="SpriteSheet.cs" />
+    <Compile Include="StaticSprite.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="VisualDebugging.cs" />
   </ItemGroup>

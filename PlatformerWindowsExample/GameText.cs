@@ -27,7 +27,7 @@ namespace PlatformerExample
         public void Draw(SpriteBatch spriteBatch, String message, Vector2 location)
         {
             location -= spriteFont.MeasureString(message) / 2;
-            spriteBatch.DrawString(spriteFont, message, location, Color.Gold);
+            spriteBatch.DrawString(spriteFont, message, location, Color.Red);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace PlatformerExample
         public void DrawScore(SpriteBatch spriteBatch, String message, Vector2 location)
         {
             location.X -= spriteFont.MeasureString(message).X;
-            spriteBatch.DrawString(spriteFont, message, location, Color.Gold);
+            spriteBatch.DrawString(spriteFont, message, location, Color.Red);
         }
     }
 }
